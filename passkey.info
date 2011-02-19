@@ -1,0 +1,3 @@
+name = "Passkey"
+description = "Authenticate against an external system"
+core = "6.x"
