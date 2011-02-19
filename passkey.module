@@ -42,7 +42,9 @@ function passkey_form_user_login_block_alter(&$form, $form_state) {
 * authenticate a user using an Evo account
 */
 function passkey_login_validate( $form, &$form_state ) {    
-  if (passkey_sso_authenticate($form_state['values']['name'], $form_state['values']['pass'])) {
+  $module = module_implements('passkey_auth');
+  $function = $module[0] .'_passkey_auth';
+  if ($function($form_state['values']['name'], $form_state['values']['pass'])) {
     user_external_login_register($form_state['values']['name'], '3volut4ionH0ser!' );
     user_authenticate_finalize( $form_state['values']);
   }
