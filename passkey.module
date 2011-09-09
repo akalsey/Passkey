@@ -41,11 +41,16 @@ function passkey_login_validate( $form, &$form_state ) {
   $pass = $form_state['values']['pass'];
   $function = variable_get('passkey_hook', '') .'_passkey_auth';
   if ($function($user, $pass)) {
-    watchdog('passkey', "$user logged in with Passkey");
-    user_external_login_register($user, 'passkey' );
     $account = user_external_load($user);
-    $form_state['uid'] = $account->uid;
-    passkey_add_role($account->uid);
+    if (!isset($account->uid)) {
+      user_external_login_register($user, 'passkey' );
+      $account = user_external_load($user);   
+      $form_state['uid'] = $account->uid;
+      passkey_add_role($account->uid);   
+      watchdog('passkey', "$user first login with Passkey");
+    } else {
+      watchdog('passkey', "$user logged in with Passkey");      
+    }
   }
   // If external auth fails, do nothing and Drupal sees this as a rejection
 }
