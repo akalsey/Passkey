@@ -70,7 +70,7 @@ function passkey_user( $op, &$edit, &$account, $category = null ) {
 }
 
 function passkey_admin_settings() {
-  $modules = module_implements('passkey_auth')
+  $modules = module_implements('passkey_auth');
   $form['passkey_hook'] = array(
     '#type' => 'select',
     '#title' => t('Which module would you like to handle auth for you?'),
