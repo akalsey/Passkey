@@ -49,6 +49,8 @@ function passkey_login_validate( $form, &$form_state ) {
       passkey_add_role($account->uid);   
       watchdog('passkey', "$user first login with Passkey");
     } else {
+      $form_state['uid'] = $account->uid;
+      user_login_submit(array(), $form_state);
       watchdog('passkey', "$user logged in with Passkey");      
     }
   }
