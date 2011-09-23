@@ -30,13 +30,13 @@ function passkey_menu() {
    * Change the normal form login form behaviour.
    */
 function passkey_form_user_login_alter(&$form, $form_state) {
-    $form['#validate'] = array('user_login_name_validate', 'passkey_login_validate', 'user_login_final_validate');
+    $form['#validate'] = array('user_login_name_validate', 'passkey_login', 'user_login_final_validate');
 }
 
 /**
 * authenticate a user using an external account
 */
-function passkey_login_validate( $form, &$form_state ) {
+function passkey_login( $form, &$form_state ) {
   $user = $form_state['values']['name'];
   $pass = $form_state['values']['pass'];
   $function = variable_get('passkey_hook', '') .'_passkey_auth';
@@ -55,6 +55,35 @@ function passkey_login_validate( $form, &$form_state ) {
     }
   }
   // If external auth fails, do nothing and Drupal sees this as a rejection
+}
+
+function passkey_form_user_register_form_alter(&$form, &$form_state) {
+  drupal_set_message('register validate');
+  $form['#validate'][] = 'passkey_register';
+}
+
+function passkey_register($form, &$form_state) {
+  $function = variable_get('passkey_hook', '') .'_passkey_register';
+  $result = $function($form_state['values']);
+  foreach ($result['messages'] as $message) {
+    $type = (array_key_exists('type', $message) && !empty($message['type'])) ? $message['type'] : 'status';
+    drupal_set_message($message['text'], $type);
+  }
+  // Let the module respond with a list of errors
+  if (array_key_exists('errors', $result)) {
+    foreach ($result['errors'] as $error) {
+      form_set_error('', $error);      
+    }
+  } else {
+    // force a redirect here to interrupt the registration
+    // process. We don't want to actually create a Drupal user
+    // during registration. 
+    if (!empty($result['goto'])) {
+      drupal_goto($result['goto']);
+    } else {
+      drupal_goto('<front>');
+    }    
+  }
 }
 
 function passkey_add_role($uid)  {
