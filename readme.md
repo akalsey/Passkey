@@ -10,8 +10,7 @@ Passkey provides a framework for authenticating users into Drupal using somethin
 than Drupal's user table. The module passes the user's username and password to your code 
 and you return true or false. It's that simple.
 
-The code can be another module (there's a hook provided: hook_passkey_auth) or a PHP 
-snippet entered into the admin settings.
+The code can be another module (there's a hook provided: hook_passkey_auth).
 
 All authenticated users end up as real Drupal users, so modules that work with users 
 will work just fine. Roles, node authorship, and anything else. You can even pick a role 
@@ -26,3 +25,6 @@ Planned enhancements:
 * Namespace external users, allowing local and external auth to mix
 * cleaner integration of user management functions
 * allow the external system to return data about the user
+* Allow the external functions to be entered as PHP code in the admin screen.
+* Add registration in the external system
+* Add password recovery from the external system

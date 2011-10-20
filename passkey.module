@@ -30,15 +30,23 @@ function passkey_menu() {
    * Change the normal form login form behaviour.
    */
 function passkey_form_user_login_alter(&$form, $form_state) {
-    $form['#validate'] = array('user_login_name_validate', 'passkey_login', 'user_login_final_validate');
+    $form['#validate'] = array('user_login_name_validate', 'passkey_login_validate', 'user_login_final_validate');
 }
 
 /**
 * authenticate a user using an external account
 */
-function passkey_login( $form, &$form_state ) {
+function passkey_login_validate( $form, &$form_state ) {
   $user = $form_state['values']['name'];
   $pass = $form_state['values']['pass'];
+  if (!function_exists($function)) {
+    form_set_error('', t('Login on this site is misconfigured. Please contact the site owner.'));
+    watchdog('passkey', 'Passkey is not configured properly. @function does not exist.',
+     array('@function' => $function),
+     WATCHDOG_ERROR
+     );
+    return;
+  }
   $function = variable_get('passkey_hook', '') .'_passkey_auth';
   if ($function($user, $pass)) {
     $account = user_external_load($user);
@@ -84,6 +92,16 @@ function passkey_register($form, &$form_state) {
       drupal_goto('<front>');
     }    
   }
+}
+
+function passkey_form_user_pass_alter(&$form, &$form_state) {
+  drupal_set_message('register validate');
+  $form['#validate'][] = 'passkey_recover';
+}
+
+function passkey_recover($form, &$form_state) {
+  $function = variable_get('passkey_hook', '') .'_passkey_recover';
+  
 }
 
 function passkey_add_role($uid)  {
