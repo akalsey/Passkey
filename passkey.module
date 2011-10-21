@@ -39,6 +39,7 @@ function passkey_form_user_login_alter(&$form, $form_state) {
 function passkey_login_validate( $form, &$form_state ) {
   $user = $form_state['values']['name'];
   $pass = $form_state['values']['pass'];
+  $function = variable_get('passkey_hook', '') .'_passkey_auth';
   if (!function_exists($function)) {
     form_set_error('', t('Login on this site is misconfigured. Please contact the site owner.'));
     watchdog('passkey', 'Passkey is not configured properly. @function does not exist.',
@@ -47,7 +48,6 @@ function passkey_login_validate( $form, &$form_state ) {
      );
     return;
   }
-  $function = variable_get('passkey_hook', '') .'_passkey_auth';
   if ($function($user, $pass)) {
     $account = user_external_load($user);
     if (!isset($account->uid)) {
