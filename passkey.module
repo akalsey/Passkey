@@ -107,4 +107,58 @@ function passkey_admin_settings() {
   );
   return system_settings_form($form);
 }
+
+
+/*
+alter user profile form
+*/
+function passkey_form_user_profile_form_alter(&$form, &$form_state, $form_id){
+  drupal_set_message('register validate');
+  $form['#validate'][] = 'passkey_user_profile_validate';
+}
+
+/*
+user profile form validation function
+*/
+function passkey_user_profile_validate(&$form, &$form_state) {
+	foreach($form_state['values'] as $key => $value){
+	  $userinfo[$key] = $value;
+	 }
+	  $function = variable_get('passkey_hook', '') .'_passkey_user_profile';
+	  $user = $userinfo['name'];
+	  
+	  //response from module function
+	  $resp = $function($userinfo);
+	  
+	  if ($resp == true) {
+	      drupal_set_message("Account updated successfully");
+	      watchdog('passkey', "$user - Account updated successfully");    
+	    }else{
+	      drupal_set_message("An error has occured.  Could not update account for $user");
+	      watchdog('passkey', "Could not update account for $user");  
+	    }
+}
+
+/*
+password recovery
+*/
+function passkey_form_user_pass_alter(&$form, &$form_state) {
+  drupal_set_message('register validate');
+  $form['#validate'][] = 'passkey_recover';
+}
+
+function passkey_recover($form, &$form_state) {
+  $user = $form_state['values']['name'];
+  $function = variable_get('passkey_hook', '') .'_passkey_recover';
+  $resp = $function($user);
+    if ($resp == true) {
+      drupal_set_message("$user successfully requested a new password");
+      watchdog('passkey', "$user has requested a new password");    
+    }else{
+      drupal_set_message("An error has occured.  Could not process new password request for $user");
+      watchdog('passkey', "Could not process new password request for $user");  
+    }
+// drupal_set_message($result);
+}
+
 ?>
