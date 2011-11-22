@@ -31,6 +31,8 @@ function passkey_menu() {
    */
 function passkey_form_user_login_alter(&$form, $form_state) {
     $form['#validate'] = array('user_login_name_validate', 'passkey_login_validate', 'user_login_final_validate');
+
+
 }
 
 /**
@@ -49,6 +51,7 @@ function passkey_login_validate( $form, &$form_state ) {
       passkey_add_role($account->uid);   
       watchdog('passkey', "$user first login with Passkey");
     } else {
+      $form_state['uid'] = $account->uid;
       watchdog('passkey', "$user logged in with Passkey");      
     }
   }
@@ -113,8 +116,22 @@ function passkey_admin_settings() {
 alter user profile form
 */
 function passkey_form_user_profile_form_alter(&$form, &$form_state, $form_id){
-  drupal_set_message('register validate');
-  $form['#validate'][] = 'passkey_user_profile_validate';
+	//email no longer required 
+	$form['account']['mail']['#required'] = false;
+
+/*
+removed default validation functions
+    [0] => user_account_form_validate
+    [1] => user_validate_current_pass
+    [2] => user_validate_picture
+    [3] => user_profile_form_validate
+    [4] => logintoboggan_user_edit_validate
+  print '<pre>';
+  print_r($form);
+  print '</pre>';
+*/	  
+	$form['#validate'] = array('passkey_user_profile_validate');
+    
 }
 
 /*
