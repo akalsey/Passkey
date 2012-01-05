@@ -31,8 +31,6 @@ function passkey_menu() {
    */
 function passkey_form_user_login_alter(&$form, $form_state) {
     $form['#validate'] = array('user_login_name_validate', 'passkey_login_validate', 'user_login_final_validate');
-
-
 }
 
 /**
@@ -151,9 +149,11 @@ function passkey_user_profile_validate(&$form, &$form_state) {
 	    }
 }
 
-/*
-password recovery
-*/
+/**
+   * Implementation of hook_form_alter().
+   *
+   * Change the password recovery form behavoir
+   */
 function passkey_form_user_pass_alter(&$form, &$form_state) {
   drupal_set_message('register validate');
   $form['#validate'][] = 'passkey_recover';
@@ -170,7 +170,30 @@ function passkey_recover($form, &$form_state) {
       drupal_set_message("An error has occured.  Could not process new password request for $user", 'error');
       watchdog('passkey', "Could not process new password request for $user");  
     }
-// drupal_set_message($result);
 }
 
+/**
+   * Implementation of hook_form_alter().
+   *
+   * Change the normal user registration form behavoir
+   */
+function passkey_form_user_register_form_alter($form, &$form_state){
+  $form['#validate'][] = 'passkey_user_register';
+}
+
+function passkey_user_register($form, &$form_state){
+	foreach($form_state['values'] as $key => $value){
+		  $userinfo[$key] = $value;
+		 }
+	$function = variable_get('passkey_hook', '') .'_passkey_user_register';
+	 //response from module function
+	$resp = $function($userinfo);
+	    if ($resp == true) {
+      drupal_set_message("Registration successful.");
+      watchdog('passkey', "$userinfo[name] has registered");    
+    }else{
+      drupal_set_message("An error has occured.", 'error');
+      watchdog('passkey', "Could not register $userinfo[name]");  
+    }	
+}
 ?>
