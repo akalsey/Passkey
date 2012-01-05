@@ -116,9 +116,6 @@ function passkey_admin_settings() {
 alter user profile form
 */
 function passkey_form_user_profile_form_alter(&$form, &$form_state, $form_id){
-	//email no longer required 
-	$form['account']['mail']['#required'] = false;
-
 /*
 removed default validation functions
     [0] => user_account_form_validate
@@ -126,10 +123,8 @@ removed default validation functions
     [2] => user_validate_picture
     [3] => user_profile_form_validate
     [4] => logintoboggan_user_edit_validate
-  print '<pre>';
-  print_r($form);
-  print '</pre>';
 */	  
+
 	$form['#validate'] = array('passkey_user_profile_validate');
     
 }
@@ -147,11 +142,11 @@ function passkey_user_profile_validate(&$form, &$form_state) {
 	  //response from module function
 	  $resp = $function($userinfo);
 	  
-	  if ($resp == true) {
+	    if ($resp == true) {
 	      drupal_set_message("Account updated successfully");
 	      watchdog('passkey', "$user - Account updated successfully");    
 	    }else{
-	      drupal_set_message("An error has occured.  Could not update account for $user");
+	      drupal_set_message("An error has occured.  Could not update your account", 'error');
 	      watchdog('passkey', "Could not update account for $user");  
 	    }
 }
@@ -172,7 +167,7 @@ function passkey_recover($form, &$form_state) {
       drupal_set_message("$user successfully requested a new password");
       watchdog('passkey', "$user has requested a new password");    
     }else{
-      drupal_set_message("An error has occured.  Could not process new password request for $user");
+      drupal_set_message("An error has occured.  Could not process new password request for $user", 'error');
       watchdog('passkey', "Could not process new password request for $user");  
     }
 // drupal_set_message($result);
