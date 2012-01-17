@@ -66,7 +66,7 @@ function passkey_login_validate( $form, &$form_state ) {
 
 function passkey_form_user_register_form_alter(&$form, &$form_state) {
   drupal_set_message('register validate');
-  $form['#validate'][] = 'passkey_register';
+  $form['#validate'] = 'passkey_register';
 }
 
 function passkey_register($form, &$form_state) {
@@ -188,10 +188,8 @@ function passkey_user_profile_validate(&$form, &$form_state) {
 	  $resp = $function($userinfo);
 	  
 	    if ($resp == true) {
-	      drupal_set_message("Account updated successfully");
 	      watchdog('passkey', "$user - Account updated successfully");    
 	    }else{
-	      drupal_set_message("An error has occured.  Could not update your account", 'error');
 	      watchdog('passkey', "Could not update account for $user");  
 	    }
 }
@@ -211,46 +209,10 @@ function passkey_recover($form, &$form_state) {
   $function = variable_get('passkey_hook', '') .'_passkey_recover';
   $resp = $function($user);
     if ($resp == true) {
-      drupal_set_message("$user successfully requested a new password");
       watchdog('passkey', "$user has requested a new password");    
     }else{
-      drupal_set_message("An error has occured.  Could not process new password request for $user", 'error');
       watchdog('passkey', "Could not process new password request for $user");  
     }
 }
 
-/**
-   * Implementation of hook_form_alter().
-   *
-   * Change the normal user registration form behavoir
- 
-function passkey_form_user_register_form_alter($form, &$form_state){
-  $form['#validate'][] = 'passkey_user_register';
-
-}
-  */
-function passkey_form_alter(&$form, &$form_state, $form_id) {
-	if ($form_id == 'user_register_form') {
-		$form['#validate'] = 'passkey_user_register';
-	}
-  }
-
-
-function passkey_user_register($form, &$form_state){
-	foreach($form_state['values'] as $key => $value){
-		  $userinfo[$key] = $value;
-		 }
-	$function = variable_get('passkey_hook', '') .'_passkey_user_register';
-	 //response from module function
-	$resp = $function($userinfo);
-    if ($resp == true) {
-      drupal_set_message("Registration successful.");
-      watchdog('passkey', "$userinfo[name] has registered");   
-	return true;      
-    }else{
-      drupal_set_message("An error has occured.", 'error');
-      watchdog('passkey', "Could not register $userinfo[name]");  
-      return false; 
-    }	
-}
 ?>
