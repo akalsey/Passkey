@@ -72,24 +72,12 @@ function passkey_form_user_register_form_alter(&$form, &$form_state) {
 function passkey_register($form, &$form_state) {
   $function = variable_get('passkey_hook', '') .'_passkey_register';
   $result = $function($form_state['values']);
-  foreach ($result['messages'] as $message) {
-    $type = (array_key_exists('type', $message) && !empty($message['type'])) ? $message['type'] : 'status';
-    drupal_set_message($message['text'], $type);
-  }
-  // Let the module respond with a list of errors
-  if (array_key_exists('errors', $result)) {
-    foreach ($result['errors'] as $error) {
-      form_set_error('', $error);      
-    }
+  $result = passkey_api_call($function, $user)
+
+  if (!empty($result['goto'])) {
+    drupal_goto($result['goto']);
   } else {
-    // force a redirect here to interrupt the registration
-    // process. We don't want to actually create a Drupal user
-    // during registration. 
-    if (!empty($result['goto'])) {
-      drupal_goto($result['goto']);
-    } else {
-      drupal_goto('<front>');
-    }    
+    drupal_goto('<front>');
   }
 }
 
@@ -175,12 +163,12 @@ function passkey_user_profile_validate(&$form, &$form_state) {
 	  $user = $userinfo['name'];
 	  
 	  //response from module function
-	  $resp = $function($userinfo);
-	  
-    if ($resp == true) {
-      watchdog('passkey', "$user - Account updated successfully");    
-    }else{
+	  $resp = passkey_api_call($function, $userinfo)
+    
+    if ($resp == false) {
       watchdog('passkey', "Could not update account for $user");  
+    }else{
+      watchdog('passkey', "$user - Account updated successfully");    
     }
 }
 
@@ -197,12 +185,31 @@ function passkey_form_user_pass_alter(&$form, &$form_state) {
 function passkey_recover($form, &$form_state) {
   $user = $form_state['values']['name'];
   $function = variable_get('passkey_hook', '') .'_passkey_recover';
-  $resp = $function($user);
-  if ($resp == true) {
-    watchdog('passkey', "$user has requested a new password");    
-  }else{
+  $resp = passkey_api_call($function, $user)
+  if (!$resp) {
     watchdog('passkey', "Could not process new password request for $user");  
+  } else {
+    watchdog('passkey', "$user has requested a new password");    
   }
+}
+
+function passkey_api_call() {
+  $args = func_get_args();
+  $function = array_shift($args);
+  $result = $function($args);
+  
+  foreach ($result['messages'] as $message) {
+    $type = (array_key_exists('type', $message) && !empty($message['type'])) ? $message['type'] : 'status';
+    drupal_set_message($message['text'], $type);
+  }
+  // Let the module respond with a list of errors
+  if (array_key_exists('errors', $result)) {
+    foreach ($result['errors'] as $error) {
+      form_set_error('', $error);      
+    }
+    return false;    
+  }
+  return $result;
 }
 
 ?>
